@@ -33,6 +33,7 @@ plugins {
     java
     `java-library`
     `maven-publish`
+    signing
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("io.qameta.allure") version "2.8.1"
 }
@@ -59,6 +60,7 @@ configure(subprojects) {
     apply(plugin = "java")
     apply(plugin = "java-library")
     apply(plugin = "maven-publish")
+    apply(plugin = "signing")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "ru.vyarus.quality")
     apply(plugin = "com.diffplug.spotless")
@@ -214,7 +216,7 @@ configure(subprojects) {
                 from(components["java"])
                 suppressAllPomMetadataWarnings()
                 pom {
-                    name.set(project.description)
+                    name.set(project.name)
                     description.set(project.description)
                     url.set("https://github.com/allure-framework/allure-java")
                     licenses {
@@ -258,6 +260,10 @@ configure(subprojects) {
             }
         }
 
+    }
+
+    signing {
+        sign(publishing.publications["maven"])
     }
 
     repositories {
