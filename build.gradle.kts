@@ -1,6 +1,5 @@
 import com.diffplug.gradle.spotless.SpotlessExtension
 import io.qameta.allure.gradle.task.AllureReport
-import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import ru.vyarus.gradle.plugin.quality.QualityExtension
 
 buildscript {
@@ -12,8 +11,6 @@ buildscript {
 
     dependencies {
         classpath("com.diffplug.spotless:spotless-plugin-gradle:5.11.1")
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
-        classpath("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
         classpath("ru.vyarus:gradle-quality-plugin:4.5.0")
     }
 }
@@ -36,6 +33,7 @@ plugins {
     java
     `java-library`
     `maven-publish`
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("io.qameta.allure") version "2.8.1"
 }
 
@@ -66,12 +64,12 @@ configure(subprojects) {
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.qameta.allure")
 
-    configure<DependencyManagementExtension> {
+    dependencyManagement {
         imports {
-            mavenBom("com.fasterxml.jackson:jackson-bom:2.12.2")
             mavenBom("org.junit:junit-bom:5.7.1")
         }
         dependencies {
+            dependency("com.fasterxml.jackson.core:jackson-databind:2.12.2")
             dependency("com.github.tomakehurst:wiremock:2.27.2")
             dependency("com.google.inject:guice:5.0.1")
             dependency("com.google.testing.compile:compile-testing:0.19")
@@ -209,12 +207,12 @@ configure(subprojects) {
     tasks.withType(Javadoc::class) {
         (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
     }
-    
+
     publishing {
         publications {
             create<MavenPublication>("maven") {
                 from(components["java"])
-
+                suppressAllPomMetadataWarnings()
                 pom {
                     name.set(project.description)
                     description.set(project.description)
@@ -229,12 +227,12 @@ configure(subprojects) {
                         developer {
                             id.set("baev")
                             name.set("Dmitry Baev")
-                            email.set("baev@qameta.io")
+                            email.set("dmitry.baev@qameta.io")
                         }
                         developer {
                             id.set("eroshenkoam")
                             name.set("Artem Eroshenko")
-                            email.set("artem@qameta.io")
+                            email.set("artem.eroshenko@qameta.io")
                         }
                     }
                     scm {
