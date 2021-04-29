@@ -23,6 +23,7 @@ import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.AnnotationUtils;
+
 import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -64,7 +65,7 @@ public class AllureJunit4 extends RunListener {
             return UUID.randomUUID().toString();
         }
     };
-
+    
     private final AllureLifecycle lifecycle;
 
     public AllureJunit4() {
@@ -114,10 +115,12 @@ public class AllureJunit4 extends RunListener {
     @Override
     public void testFailure(final Failure failure) {
         final String uuid = testCases.get();
-        getLifecycle().updateTestCase(uuid, testResult -> testResult
-                .setStatus(getStatus(failure.getException()).orElse(null))
-                .setStatusDetails(getStatusDetails(failure.getException()).orElse(null))
-        );
+        getLifecycle().updateTestCase(uuid, testResult -> {
+            if (Objects.isNull(testResult.getStatus())) {
+                testResult.setStatus(getStatus(failure.getException()).orElse(null))
+               .setStatusDetails(getStatusDetails(failure.getException()).orElse(null));
+            }
+        });
     }
 
     @Override

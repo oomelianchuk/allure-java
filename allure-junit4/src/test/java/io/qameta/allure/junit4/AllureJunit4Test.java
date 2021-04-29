@@ -32,6 +32,7 @@ import io.qameta.allure.junit4.samples.TestBasedOnSampleRunner;
 import io.qameta.allure.junit4.samples.TestWithAnnotations;
 import io.qameta.allure.junit4.samples.TestWithSteps;
 import io.qameta.allure.junit4.samples.TestWithTimeout;
+import io.qameta.allure.junit4.samples.TestWithTwoFailures;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.Stage;
@@ -147,6 +148,16 @@ class AllureJunit4Test {
                 .containsExactly(Status.BROKEN);
         assertThat(testResults.get(0).getStatusDetails())
                 .hasFieldOrPropertyWithValue("message", "Hello, everybody")
+                .hasFieldOrProperty("trace");
+    }
+    
+    @Test
+    @AllureFeatures.FailedTests
+    void shouldProcessTestsWithMultipleFailures() {
+        final AllureResults results = runClasses(TestWithTwoFailures.class);
+        List<TestResult> testResults = results.getTestResults();
+        assertThat(testResults.get(0).getStatusDetails())
+                .hasFieldOrPropertyWithValue("message", "java.lang.AssertionError")
                 .hasFieldOrProperty("trace");
     }
 

@@ -148,6 +148,7 @@ class AllureSelenideTest {
 
         final AllureResults results = runWithinTestContext(() -> {
             final AllureSelenide selenide = new AllureSelenide()
+                    .saveFailureStacktrace(false)
                     .savePageSource(false)
                     .screenshots(true);
             SelenideLogger.addListener(UUID.randomUUID().toString(), selenide);
@@ -183,12 +184,53 @@ class AllureSelenideTest {
         final ChromeDriver wdMock = mock(ChromeDriver.class);
         WebDriverRunner.setWebDriver(wdMock);
         doReturn("dummy-page-source")
+        .when(wdMock).getPageSource();
+        
+        final AllureResults results = runWithinTestContext(() -> {
+            final AllureSelenide selenide = new AllureSelenide()
+                .saveFailureStacktrace(false)
+                .screenshots(false)
+                .savePageSource(true);
+            SelenideLogger.addListener(UUID.randomUUID().toString(), selenide);
+            final SelenideLog log = SelenideLogger.beginStep(
+                                                             "dummy source",
+                                                             "dummyMethod()",
+                                                             "param1",
+                                                             "param2"
+                );
+            SelenideLogger.commitStep(log, new Exception("something went wrong"));
+        });
+        
+        final StepResult selenideStep = extractStepFromResults(results);
+        assertThat(selenideStep.getAttachments())
+        .hasSize(1);
+        
+        final Attachment attachment = selenideStep.getAttachments().iterator().next();
+        assertThat(results.getAttachments())
+        .containsKey(attachment.getSource());
+        
+        final String attachmentContent = new String(
+                                                    results.getAttachments().get(attachment.getSource()),
+                                                    StandardCharsets.UTF_8
+            );
+        
+        assertThat(attachmentContent)
+        .isEqualTo("dummy-page-source");
+    }
+    
+    @AllureFeatures.Attachments
+    @Test
+    void shouldSaveFailureStacktraceOnFail() {
+        final ChromeDriver wdMock = mock(ChromeDriver.class);
+        WebDriverRunner.setWebDriver(wdMock);
+        doReturn("dummy-page-source")
                 .when(wdMock).getPageSource();
 
         final AllureResults results = runWithinTestContext(() -> {
             final AllureSelenide selenide = new AllureSelenide()
                     .screenshots(false)
-                    .savePageSource(true);
+                    .savePageSource(false)
+                    .saveFailureStacktrace(true);
             SelenideLogger.addListener(UUID.randomUUID().toString(), selenide);
             final SelenideLog log = SelenideLogger.beginStep(
                     "dummy source",
@@ -213,7 +255,7 @@ class AllureSelenideTest {
         );
 
         assertThat(attachmentContent)
-                .isEqualTo("dummy-page-source");
+                .contains("something went wrong");
     }
 
     @AllureFeatures.Attachments
@@ -221,6 +263,7 @@ class AllureSelenideTest {
     void shouldNotFailIfBrowserIsNotOpened() {
         final AllureResults results = runWithinTestContext(() -> {
             final AllureSelenide selenide = new AllureSelenide()
+                .saveFailureStacktrace(false)
                 .savePageSource(false)
                 .screenshots(true);
             SelenideLogger.addListener(UUID.randomUUID().toString(), selenide);
@@ -257,6 +300,7 @@ class AllureSelenideTest {
         final AllureResults results = runWithinTestContext(() -> {
             final AllureSelenide selenide = new AllureSelenide()
                     .enableLogs(LogType.BROWSER, Level.ALL)
+                    .saveFailureStacktrace(false)
                     .savePageSource(false)
                     .screenshots(false);
 

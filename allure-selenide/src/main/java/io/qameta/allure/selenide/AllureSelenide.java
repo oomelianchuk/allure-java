@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
 import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -51,6 +52,7 @@ public class AllureSelenide implements LogEventListener {
 
     private boolean saveScreenshots = true;
     private boolean savePageHtml = true;
+    private boolean saveStacktrace = true;
     private boolean includeSelenideLocatorsSteps = true;
     private final Map<LogType, Level> logTypesToSave = new HashMap<>();
     private final AllureLifecycle lifecycle;
@@ -70,6 +72,11 @@ public class AllureSelenide implements LogEventListener {
 
     public AllureSelenide savePageSource(final boolean savePageHtml) {
         this.savePageHtml = savePageHtml;
+        return this;
+    }
+    
+    public AllureSelenide saveFailureStacktrace(final boolean saveStacktrace) {
+        this.saveStacktrace = saveStacktrace;
         return this;
     }
 
@@ -137,6 +144,15 @@ public class AllureSelenide implements LogEventListener {
                 if (savePageHtml) {
                     getPageSourceBytes()
                             .ifPresent(bytes -> lifecycle.addAttachment("Page source", "text/html", "html", bytes));
+                }
+                if (saveStacktrace) {
+                   final String failureDetails = new StringBuffer()
+                        .append(Optional.ofNullable(event.getError().getMessage())
+                        .orElse(event.getError().getClass().getName())).append('\n')
+                        .append(getStackTraceAsString(event.getError())).toString();
+                    
+                    lifecycle.addAttachment("Information about step failure: ", "text/txt", "txt",
+                                           failureDetails.getBytes(UTF_8));
                 }
                 if (!logTypesToSave.isEmpty()) {
                     logTypesToSave

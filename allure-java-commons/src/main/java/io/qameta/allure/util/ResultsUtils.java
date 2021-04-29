@@ -365,7 +365,7 @@ public final class ResultsUtils {
                 Thread.currentThread().getId());
     }
 
-    private static String getStackTraceAsString(final Throwable throwable) {
+    public static String getStackTraceAsString(final Throwable throwable) {
         final StringWriter stringWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();
