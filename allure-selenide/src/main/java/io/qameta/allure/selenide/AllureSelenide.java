@@ -150,9 +150,8 @@ public class AllureSelenide implements LogEventListener {
                         .append(Optional.ofNullable(event.getError().getMessage())
                         .orElse(event.getError().getClass().getName())).append('\n')
                         .append(getStackTraceAsString(event.getError())).toString();
-                    
-                    lifecycle.addAttachment("Information about step failure: ", "text/txt", "txt",
-                                           failureDetails.getBytes(UTF_8));
+                   
+                   Allure.addAttachment("Information about step failure: ", failureDetails);
                 }
                 if (!logTypesToSave.isEmpty()) {
                     logTypesToSave
